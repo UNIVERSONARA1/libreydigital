@@ -380,8 +380,8 @@ header{position:sticky;top:0;z-index:40;background:rgba(238,241,245,.9);backdrop
 /* ==============================================================
    0) CONFIGURACIÓN
    ============================================================== */
-const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKQ_5kPIsm2vnrAiRzFLXFd4s8KyfxvsokCG2Bp5PKDlSsdWqQX6WZfA1DNXKl38XzQMJ8CXw6jJ7O/pub?gid=1474601069&single=true&output=csv";
-const CONTADOR_URL = "https://script.google.com/macros/s/AKfycbzC86qascdbcfVS6gvSuqQ11TXz8DZ-Xuw23r8RQW4Sw1cWUxfQx6YjXxoP1b80qhmN3g/exec";
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRIQm97h_ff3dyDRBYYjfOAoN6SH6I1LiyOOAlODHC4UmKCBr_tQGgRCaRWbZI_SWawBXreRxAnGBsM/pub?gid=543726815&single=true&output=csv";
+const CONTADOR_URL = "https://script.google.com/macros/s/AKfycbykdEjpmS6tYXiJH2oBdFWAP80ndeoExyzRjLg7yegclknBdcljnJ9rjA77JSWMbm_PmQ/exec";
 const MOSTRAR_PRECIOS = true; // interruptor: false = solo "Consultar"
 const WHATSAPP_NUM = "573178047523";
 const NEGOCIO = { nombre:"Libre y Digital", nit:"80171352", tel:"+57 317 804 7523", web:"libreydigital.co" };
@@ -500,6 +500,7 @@ async function cargarCatalogo(){
     const iPrecio  = findCol(headers, ["Precio final","Precio_final","Preciofinal","Precio"]);
     const iNotas   = findCol(headers, ["Notas"]);
     const iId      = findCol(headers, ["ID_Tarjeta"]);
+    const iCodigo  = findCol(headers, ["Codigo_Ref","Código_Ref","Codigo Referencia","Código de Referencia"]);
     const iPrio    = findCol(headers, ["Prioridad_Estado"]);
     const iDisp    = findCol(headers, ["Disponibilidad"]);
     const iVeces   = findCol(headers, ["Veces_Solicitado"]);
@@ -544,6 +545,7 @@ async function cargarCatalogo(){
       if(!grupos.has(idTarjeta)){
         grupos.set(idTarjeta, {
           id: idTarjeta,
+          codigo: limpiarCampo(iCodigo>-1 ? row[iCodigo] : "") || idTarjeta,
           marca,
           categoria: (row[iCat]||"").trim(),
           producto: (row[iProd]||"").trim(),
@@ -775,15 +777,26 @@ function filtrar(){
   else if(estado.sort==="precio-desc") arr.sort((a,b)=>precioDe(b)-precioDe(a));
   else if(estado.sort==="marca") arr.sort((a,b)=>a.marca.localeCompare(b.marca));
   else if(estado.sort==="pedidos") arr.sort((a,b)=>b.veces-a.veces);
+  else {
+    // "Relevancia" (por defecto): los destacados (más pedidos) quedan
+    // fijos en los primeros puestos sin importar precio; el resto del
+    // catálogo se ordena de más caro a más económico.
+    arr.sort((a,b)=>{
+      if(a.esTendencia !== b.esTendencia) return (b.esTendencia?1:0) - (a.esTendencia?1:0);
+      return precioDe(b) - precioDe(a);
+    });
+  }
   return arr;
 }
 
 /* --------------------------------------------------------------
    FOTOS DE PRODUCTO
-   Convención: el archivo se nombra igual que el ID_Tarjeta del
-   producto (ej. "apple-16-128gb-128gb.jpg"), subido a la carpeta
-   /images/ del repo. No hace falta columna nueva en el Excel: la
-   página arma la ruta sola. Si no existe la foto, prueba otras
+   Convención: el archivo se nombra igual que el Codigo_Ref del
+   producto (ej. "CEL-00001.jpg"), subido a la carpeta /images/ del
+   repo. Si la hoja aún no tiene columna Codigo_Ref, usa el
+   ID_Tarjeta como respaldo automático (sin romper nada mientras
+   migras). No hace falta columna nueva para empezar — la página
+   arma la ruta sola. Si no existe la foto, prueba otras
    extensiones y si ninguna existe, se queda con el ícono de
    categoría (nunca rompe el diseño).
    -------------------------------------------------------------- */
@@ -865,8 +878,8 @@ function tarjetaHTML(t){
           <svg viewBox="0 0 24 24" fill="none"><path d="M9 3v18M15 3v18M3 9h18M3 15h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
         <div class="ph-icon">${imgPlaceholder(t)}</div>
-        <img class="prod-img" src="images/${t.id}.jpg" alt="${t.marca} ${t.producto}"
-             loading="lazy" data-id="${t.id}" data-step="0" onerror="manejarErrorImagen(this)" />
+        <img class="prod-img" src="images/${t.codigo}.jpg" alt="${t.marca} ${t.producto}"
+             loading="lazy" data-id="${t.codigo}" data-step="0" onerror="manejarErrorImagen(this)" />
       </div>
       <div class="body">
         <div class="brand-line">${t.marca}</div>
@@ -1096,12 +1109,11 @@ async function meInteresa(t){
   const mensaje = mensajeWA(t,v);
   const linkWA = `https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(mensaje)}`;
 
-  // Abre WhatsApp directo al número del negocio, mensaje ya escrito.
-  window.open(linkWA, "_blank");
-
-  // Descarga la ficha en paralelo y muestra el instructivo para adjuntarla
-  // (mismo patrón probado en el cotizador PPA: no existe forma de adjuntar
-  // el archivo solo, así que se guía al cliente con un paso claro).
+  // NOTA (corregido tras reporte de "no exporta html"): antes se abría
+  // WhatsApp primero y la descarga después — varios navegadores móviles
+  // (Safari/iOS en particular) bloquean o descartan la segunda acción
+  // dentro del mismo toque una vez ya se disparó una ventana nueva. Se
+  // invierte el orden: la descarga va primero, WhatsApp después.
   try{
     const html = cotizacionHTML(t,v);
     const nombreArch = `Cotizacion-${t.marca}-${t.producto}`.replace(/[^\w\-]+/g,"-") + ".html";
@@ -1109,12 +1121,13 @@ async function meInteresa(t){
     const a = document.createElement("a"); a.href=url; a.download=nombreArch; document.body.appendChild(a); a.click(); a.remove();
   }catch(e){}
 
+  window.open(linkWA, "_blank");
   mostrarInstructivo(linkWA);
 }
 
 function contarClic(t){
   try{
-    fetch(`${CONTADOR_URL}?id=${encodeURIComponent(t.id)}`, { mode: "no-cors", cache: "no-store" }).catch(()=>{});
+    fetch(`${CONTADOR_URL}?id=${encodeURIComponent(t.codigo)}`, { mode: "no-cors", cache: "no-store" }).catch(()=>{});
   }catch(e){}
 }
 
