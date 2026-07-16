@@ -93,7 +93,7 @@ header{position:sticky;top:0;z-index:40;background:rgba(238,241,245,.9);backdrop
 .promo-wrap{padding:14px 0 0;overflow:hidden}
 .promo-track{display:flex;transition:transform .45s var(--ease)}
 .promo-slide{
-  flex:0 0 100%;border-radius:18px;padding:22px 24px;min-height:104px;
+  flex:0 0 100%;border-radius:18px;padding:22px 24px;aspect-ratio:2.6/1;
   display:flex;flex-direction:column;justify-content:center;gap:4px;position:relative;overflow:hidden;
   color:#fff;
 }
@@ -104,6 +104,15 @@ header{position:sticky;top:0;z-index:40;background:rgba(238,241,245,.9);backdrop
 }
 .promo-slide.v1{background:linear-gradient(120deg,#173B8C 0%,#2F6FED 55%,#0EA9B8 100%)}
 .promo-slide.v2{background:linear-gradient(120deg,#0B1F3A 0%,#154C7A 60%,#0EA9B8 100%)}
+/* Slide de imagen: cover + posición centrada, así se auto-ajusta sin
+   importar el tamaño exacto de la foto que subas (se recorta al
+   centro, nunca se deforma). Pixelaje recomendado más abajo en JS. */
+.promo-slide.img-slide{background-size:cover;background-position:center;justify-content:flex-end}
+.promo-slide.img-slide::before{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(0deg, rgba(11,15,20,.75) 0%, rgba(11,15,20,.05) 55%);
+}
+.promo-slide.img-slide .promo-eyebrow,.promo-slide.img-slide .promo-title,.promo-slide.img-slide .promo-sub{position:relative;z-index:1}
 .promo-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.85}
 .promo-title{font-family:var(--font-disp);font-size:19px;font-weight:700;margin:0;max-width:80%}
 .promo-sub{font-size:12.5px;opacity:.9;max-width:70%}
@@ -306,18 +315,7 @@ header{position:sticky;top:0;z-index:40;background:rgba(238,241,245,.9);backdrop
 
 <main class="wrap">
   <div class="promo-wrap">
-    <div class="promo-track" id="promoTrack">
-      <div class="promo-slide v1">
-        <span class="promo-eyebrow">Libre y Digital</span>
-        <p class="promo-title">Cotiza por WhatsApp en un toque</p>
-        <span class="promo-sub">Elige tu equipo, te armamos la ficha y te escribimos directo.</span>
-      </div>
-      <div class="promo-slide v2">
-        <span class="promo-eyebrow">Certificación Apple</span>
-        <p class="promo-title">Sellado, CPO o activado — tú eliges</p>
-        <span class="promo-sub">Cada estado con su precio real, sin sorpresas.</span>
-      </div>
-    </div>
+    <div class="promo-track" id="promoTrack"></div>
     <div class="promo-dots" id="promoDots"></div>
   </div>
 
@@ -438,6 +436,43 @@ function findCol(headers, candidatos){
   return -1;
 }
 
+/* --------------------------------------------------------------
+   PARSEO DE PRECIO
+   BUG CORREGIDO: la hoja guarda el precio como texto en formato
+   colombiano ("3.300.000"), donde el punto es separador de MILES,
+   no decimal. El parseo anterior lo leía como si el punto fuera
+   decimal ("3.300.000" -> 3.3 -> redondeaba a "$3"). Esta función
+   distingue miles-con-punto de un decimal real antes de convertir.
+   -------------------------------------------------------------- */
+function parsePrecio(raw){
+  if(raw==null) return null;
+  let s = raw.toString().trim().replace(/[^\d.,-]/g,"");
+  if(!s) return null;
+  // $2.590.000,00 (es-CO completo: miles con punto + decimales con coma)
+  if(/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)){
+    return parseInt(s.split(",")[0].replace(/\./g,""),10) || null;
+  }
+  // $2,590,000.00 (en-US: miles con coma + decimales con punto)
+  if(/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)){
+    return Math.round(parseFloat(s.replace(/,/g,""))) || null;
+  }
+  // 2590000 o 2590000.0 (número plano)
+  const n = parseFloat(s.replace(",","."));
+  return isNaN(n) ? null : Math.round(n);
+}
+
+/* --------------------------------------------------------------
+   LIMPIEZA DE CAMPOS DE TEXTO
+   BUG CORREGIDO: varias fórmulas de la hoja devuelven el texto
+   literal "0" cuando el campo está vacío (Notas, Etiqueta). Antes
+   se mostraba ese "0" como si fuera una especificación o etiqueta
+   real. Esta función lo trata igual que un campo vacío.
+   -------------------------------------------------------------- */
+function limpiarCampo(v){
+  const s = (v||"").toString().trim();
+  return (s==="" || s==="0") ? "" : s;
+}
+
 /* ==============================================================
    2) CARGA Y TRANSFORMACIÓN DE DATOS
    ============================================================== */
@@ -497,8 +532,8 @@ async function cargarCatalogo(){
       const idTarjeta = (iId>-1 && row[iId] && row[iId].trim()) || norm(`${marca}-${row[iProd]}-${row[iCap]}`).replace(/[^a-z0-9]+/g,"-");
       const variante = {
         estado: (row[iEstado]||"").trim(),
-        etiqueta: (row[iEtq]||"").trim(),
-        precio: parseFloat((row[iPrecio]||"").toString().replace(/[^\d.-]/g,"")) || null,
+        etiqueta: limpiarCampo(row[iEtq]),
+        precio: parsePrecio(row[iPrecio]),
         disponibilidad: disponibilidad || "Disponible",
         prioridad: parseInt(row[iPrio]) || 4,
       };
@@ -510,7 +545,7 @@ async function cargarCatalogo(){
           categoria: (row[iCat]||"").trim(),
           producto: (row[iProd]||"").trim(),
           capacidad: (row[iCap]||"").trim(),
-          notas: (row[iNotas]||"").trim(),
+          notas: limpiarCampo(row[iNotas]),
           veces: parseInt(row[iVeces]) || 0,
           variantes: []
         });
@@ -553,15 +588,44 @@ function mostrarErrorCarga(err){
 /* ==============================================================
    PROMO · Carrusel de banners
    -----------------------------------------------------------
-   Slots de texto/gradiente listos hoy; cuando haya fotos de
-   producto, cada slide puede llevar background-image en vez de
-   gradiente sin tocar la lógica de autoplay/swipe.
+   Para agregar un banner con foto, solo agrega un objeto acá con
+   tipo:"imagen" y la URL/ruta de la foto. NO necesitas pixelaje
+   exacto: el banner tiene una proporción fija (2.6:1) y la imagen
+   se recorta automáticamente al centro con "cover" — nunca se
+   deforma, sin importar el tamaño que subas. Aun así, para que
+   nada importante quede recortado en el recorte automático,
+   recomendado: 1200×460px (o cualquier foto con esa proporción
+   ~2.6:1), con el punto de interés principal centrado.
    ============================================================== */
+const PROMO_SLIDES = [
+  { tipo:"texto", clase:"v1", eyebrow:"Libre y Digital", titulo:"Cotiza por WhatsApp en un toque", sub:"Elige tu equipo, te armamos la ficha y te escribimos directo." },
+  { tipo:"texto", clase:"v2", eyebrow:"Certificación Apple", titulo:"Sellado, CPO o activado — tú eliges", sub:"Cada estado con su precio real, sin sorpresas." },
+  // Ejemplo listo para cuando tengas la foto (descomenta y ajusta):
+  // { tipo:"imagen", src:"banners/promo-iphone17.jpg", eyebrow:"Recién llegado", titulo:"iPhone 17 Pro ya disponible", sub:"Sellado, con garantía." },
+];
+
 function initPromo(){
   const track = $("#promoTrack");
-  const slides = $$(".promo-slide", track);
   const dotsBox = $("#promoDots");
+  track.innerHTML = PROMO_SLIDES.map(s=>{
+    if(s.tipo==="imagen"){
+      return `<div class="promo-slide img-slide" style="background-image:url('${s.src}')">
+        ${s.eyebrow?`<span class="promo-eyebrow">${s.eyebrow}</span>`:""}
+        ${s.titulo?`<p class="promo-title">${s.titulo}</p>`:""}
+        ${s.sub?`<span class="promo-sub">${s.sub}</span>`:""}
+      </div>`;
+    }
+    return `<div class="promo-slide ${s.clase||'v1'}">
+      <span class="promo-eyebrow">${s.eyebrow}</span>
+      <p class="promo-title">${s.titulo}</p>
+      <span class="promo-sub">${s.sub}</span>
+    </div>`;
+  }).join("");
+
+  const slides = $$(".promo-slide", track);
+  if(!slides.length) return;
   let i = 0;
+  dotsBox.innerHTML = "";
   slides.forEach((_,n)=>{
     const d = document.createElement("span");
     d.className = "promo-dot" + (n===0?" on":"");
@@ -741,7 +805,7 @@ function imgPlaceholder(t){
 
 function tarjetaHTML(t){
   const v = t._varSel || t.variantePorDefecto;
-  const specs = (t.notas||"").split("|").map(s=>s.trim()).filter(Boolean).slice(0,3);
+  const specs = (t.notas||"").split("|").map(s=>s.trim()).filter(s=>s && s!=="0").slice(0,3);
   const precioHTML = MOSTRAR_PRECIOS
     ? (v.precio ? `<div class="price">${formatCOP(v.precio)} <small>COP</small></div>` : `<div class="price-ask">Consultar precio</div>`)
     : `<div class="price-ask">Consultar precio</div>`;
@@ -902,7 +966,7 @@ function mensajeWA(t,v){
 }
 
 function cotizacionHTML(t,v){
-  const specs = (t.notas||"").split("|").map(s=>s.trim()).filter(Boolean);
+  const specs = (t.notas||"").split("|").map(s=>s.trim()).filter(s=>s && s!=="0");
   const specsList = specs.map(s=>`<li><span class="dot"></span>${s}</li>`).join("");
   const precioBlock = MOSTRAR_PRECIOS && v.precio
     ? `<div class="q-price-box"><div class="q-price">${formatCOP(v.precio)}<span>COP</span></div><p class="q-note">Precio de referencia, sujeto a disponibilidad.</p></div>`
@@ -911,31 +975,33 @@ function cotizacionHTML(t,v){
   return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
 <style>
   *{box-sizing:border-box}
-  body{margin:0;background:#E4E9F0;color:#10151C;font-family:-apple-system,Segoe UI,Arial,sans-serif;padding:24px 14px}
-  .q{max-width:420px;margin:0 auto;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 24px 60px -24px rgba(16,21,28,.25)}
-  .q-bar{height:6px;background:linear-gradient(120deg,#2F6FED,#0EA9B8)}
-  .q-top{display:flex;align-items:center;gap:10px;padding:20px 24px 16px}
-  .q-mark{width:40px;height:40px;border-radius:11px;object-fit:cover;flex-shrink:0;box-shadow:0 6px 16px -8px rgba(16,21,28,.35)}
-  .q-brand b{display:block;font-size:14.5px;font-weight:700}
-  .q-brand span{display:block;font-size:11px;color:#5B6472}
-  .q-tag{margin-left:auto;font-size:10.5px;background:#EAF1FE;color:#2F6FED;padding:5px 10px;border-radius:999px;font-weight:700;letter-spacing:.02em;text-transform:uppercase}
-  .q-body{padding:6px 24px 20px}
-  .q-cat-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-  .q-cat{font-size:11.5px;color:#0EA9B8;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
-  .q-estado{font-size:10.5px;background:#FFF1E0;color:#B5650A;padding:3px 9px;border-radius:999px;font-weight:700}
-  .q-title{margin:0 0 16px;font-size:22px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
-  .q-price-box{background:#F7F9FC;border:1px solid #E4E9F0;border-radius:14px;padding:16px 18px;margin-bottom:16px}
-  .q-price{font-size:27px;font-weight:800;letter-spacing:-.01em}
-  .q-price span{font-size:12px;color:#5B6472;font-weight:600;margin-left:4px}
-  .q-price-ask{font-size:18px;font-weight:700;color:#2F6FED}
-  .q-note{font-size:11.5px;color:#5B6472;margin:5px 0 0}
+  html,body{height:100%}
+  body{margin:0;background:#E4E9F0;color:#10151C;font-family:-apple-system,Segoe UI,Arial,sans-serif;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px 16px}
+  .q{width:100%;max-width:480px;background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 28px 70px -26px rgba(16,21,28,.28)}
+  .q-bar{height:8px;background:linear-gradient(120deg,#2F6FED,#0EA9B8)}
+  .q-top{display:flex;align-items:center;gap:12px;padding:26px 28px 20px}
+  .q-mark{width:48px;height:48px;border-radius:13px;object-fit:cover;flex-shrink:0;box-shadow:0 8px 18px -8px rgba(16,21,28,.35)}
+  .q-brand b{display:block;font-size:17px;font-weight:700}
+  .q-brand span{display:block;font-size:12.5px;color:#5B6472}
+  .q-tag{margin-left:auto;font-size:11.5px;background:#EAF1FE;color:#2F6FED;padding:6px 12px;border-radius:999px;font-weight:700;letter-spacing:.02em;text-transform:uppercase}
+  .q-body{padding:8px 28px 26px}
+  .q-cat-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .q-cat{font-size:13px;color:#0EA9B8;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .q-estado{font-size:11.5px;background:#FFF1E0;color:#B5650A;padding:4px 11px;border-radius:999px;font-weight:700}
+  .q-title{margin:0 0 20px;font-size:28px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
+  .q-price-box{background:#F7F9FC;border:1px solid #E4E9F0;border-radius:16px;padding:20px 22px;margin-bottom:20px}
+  .q-price{font-size:34px;font-weight:800;letter-spacing:-.01em}
+  .q-price span{font-size:13px;color:#5B6472;font-weight:600;margin-left:5px}
+  .q-price-ask{font-size:22px;font-weight:700;color:#2F6FED}
+  .q-note{font-size:12.5px;color:#5B6472;margin:7px 0 0}
   .q-specs{margin:0;padding:0;list-style:none}
-  .q-specs li{display:flex;align-items:flex-start;gap:9px;font-size:13.5px;color:#2B313B;padding:9px 0;border-bottom:1px solid #EEF1F5}
+  .q-specs li{display:flex;align-items:flex-start;gap:10px;font-size:15px;color:#2B313B;padding:12px 0;border-bottom:1px solid #EEF1F5}
   .q-specs li:last-child{border-bottom:none}
-  .q-specs .dot{width:6px;height:6px;border-radius:50%;background:#2F6FED;margin-top:6px;flex-shrink:0}
-  .q-foot{padding:18px 24px;background:#10151C;color:#C7CCD4;font-size:12px;line-height:1.8;text-align:center}
-  .q-foot b{color:#fff;font-size:13px}
-  .q-foot .wa{color:#3CD97A;font-weight:700}
+  .q-specs .dot{width:7px;height:7px;border-radius:50%;background:#2F6FED;margin-top:7px;flex-shrink:0}
+  .q-foot{padding:22px 28px;background:#10151C;color:#C7CCD4;font-size:13px;line-height:1.9;text-align:center}
+  .q-foot b{color:#fff;font-size:14.5px}
+  .q-foot .wa{color:#3CD97A;font-weight:700;font-size:14px}
 </style></head><body>
   <div class="q">
     <div class="q-bar"></div>
