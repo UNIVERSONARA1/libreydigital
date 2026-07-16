@@ -918,23 +918,38 @@ function render(){
     const card = wrap.firstElementChild;
     card.style.animationDelay = (Math.min(i,12)*35)+"ms";
     grid.appendChild(card);
-
-    $$('.vp-row',card).forEach(btn=>{
-      btn.onclick = ()=>{
-        const est = btn.dataset.est;
-        t._varSel = t.variantes.find(x=>x.estado===est);
-        const nuevo = document.createElement("div");
-        nuevo.innerHTML = tarjetaHTML(t);
-        card.replaceWith(nuevo.firstElementChild);
-      };
-    });
-    $('.cmp-toggle',card).onclick = ()=>toggleComparar(t.id);
-    const waBtn = $('[data-act="wa"]',card);
-    if(waBtn && !waBtn.disabled) waBtn.onclick = ()=>meInteresa(t);
-    $('[data-act="share"]',card).onclick = ()=>compartirProducto(t);
-    $('[data-act="ver"]',card).onclick = ()=>verCotizacion(t);
   });
 }
+
+/* --------------------------------------------------------------
+   DELEGACIÓN DE EVENTOS EN LA GRILLA
+   BUG CORREGIDO: antes cada botón se conectaba individualmente por
+   tarjeta; al elegir una variante (Sellado/CPO) la tarjeta se
+   reconstruía desde cero y esos botones nuevos quedaban sin
+   conectar ("Me interesa", "Ver ficha", "Compartir" no respondían).
+   Con un solo listener en el contenedor padre, esto no puede volver
+   a pasar sin importar cuántas veces se reemplace una tarjeta.
+   -------------------------------------------------------------- */
+$("#grid").addEventListener("click", (e)=>{
+  const card = e.target.closest(".card");
+  if(!card) return;
+  const t = TARJETAS.find(x=>`card-${x.id}`===card.id);
+  if(!t) return;
+
+  const vpRow = e.target.closest(".vp-row");
+  if(vpRow && !vpRow.disabled){
+    t._varSel = t.variantes.find(x=>x.estado===vpRow.dataset.est);
+    const nuevo = document.createElement("div");
+    nuevo.innerHTML = tarjetaHTML(t);
+    card.replaceWith(nuevo.firstElementChild);
+    return;
+  }
+  if(e.target.closest(".cmp-toggle")){ toggleComparar(t.id); return; }
+  const waBtn = e.target.closest('[data-act="wa"]');
+  if(waBtn && !waBtn.disabled){ meInteresa(t); return; }
+  if(e.target.closest('[data-act="share"]')){ compartirProducto(t); return; }
+  if(e.target.closest('[data-act="ver"]')){ verCotizacion(t); return; }
+});
 
 function limpiar(){
   estado.cat="Todas"; estado.marcas.clear(); estado.sort="rel"; estado.q="";
