@@ -5,11 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <!-- ============================================================
-     LIBRE Y DIGITAL · Catálogo web (v1 PRODUCCIÓN)
+     LIBRE Y DIGITAL · Catálogo web (v2 · rediseño claro)
      Un solo archivo autocontenido, listo para GitHub Pages.
      Los productos se leen en vivo desde el CSV publicado de Google
      Sheets (hoja "Publicar_Web" — NUNCA apuntar a la hoja "Precios").
      Para agregar/editar productos: edita el Google Sheet, no este archivo.
+
+     CAMBIOS v2 vs v1:
+     - Lectura de columna de precio TOLERANTE (antes buscaba
+       exactamente "Precio" y la hoja publica "Precio final" -> por
+       eso no cargaban los precios).
+     - Marcas normalizadas por texto (POCO/Poco ya no duplican chip).
+     - Placeholder de imagen ya no muestra "1" (usa ícono de categoría).
+     - Se eliminó la franja de marcas duplicada.
+     - Rediseño completo: fondo claro, filtros de marca en panel
+       aparte (no todos los chips sueltos), precio protagonista.
      ============================================================ -->
 
 <title>Libre y Digital · Catálogo de tecnología</title>
@@ -21,36 +31,37 @@
 <meta property="og:description" content="Celulares, tablets, portátiles y más. Elige tu equipo y pídelo por WhatsApp." />
 <meta property="og:url" content="https://libreydigital.co" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="theme-color" content="#0B0E14" />
+<meta name="theme-color" content="#EEF1F5" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet" />
 
 <style>
 :root{
-  --bg:#0B0E14; --bg-2:#0F131C; --card:#12161F; --card-2:#161B26;
-  --line:#232A38; --line-soft:#1B212C;
-  --txt:#F2F5FA; --muted:#8A93A3; --muted-2:#5D6675;
-  --accent:#3B9EFF; --accent-2:#35E0E5;
-  --accent-grad:linear-gradient(120deg,#3B9EFF 0%,#35E0E5 100%);
-  --wa:#25D366; --wa-dark:#1EB457;
-  --brand-green:#55C000;
-  --gray:#5D6675;
-  --radius:18px; --radius-sm:12px;
-  --shadow:0 20px 50px -20px rgba(0,0,0,.7);
+  /* ---- Sistema de color v2: fondo claro azulado, texto grafito, acento
+     azul eléctrico + cian, verde SOLO para WhatsApp (Von Restorff) ---- */
+  --bg:#EEF1F5; --bg-2:#E4E9F0; --card:#FFFFFF; --card-2:#F7F9FC;
+  --line:#DDE3EC; --line-soft:#E7ECF3;
+  --ink:#10151C; --muted:#5B6472; --muted-2:#8992A3;
+  --accent:#2F6FED; --accent-2:#0EA9B8;
+  --accent-grad:linear-gradient(120deg,#2F6FED 0%,#0EA9B8 100%);
+  --accent-soft:#EAF1FE;
+  --wa:#1FAF52; --wa-dark:#158A40;
+  --radius:16px; --radius-sm:11px;
+  --shadow:0 16px 40px -18px rgba(16,21,28,.18);
   --ease:cubic-bezier(.22,.61,.36,1);
+  --font-disp:"Space Grotesk",Inter,sans-serif;
+  --font-body:"Inter",system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",monospace;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{
   margin:0;
-  background:
-    radial-gradient(1200px 600px at 80% -10%, rgba(59,158,255,.10), transparent 60%),
-    radial-gradient(900px 500px at 0% 0%, rgba(53,224,229,.06), transparent 55%),
-    var(--bg);
-  color:var(--txt);
-  font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-body);
   -webkit-font-smoothing:antialiased;
   line-height:1.5;
   min-height:100vh;
@@ -58,150 +69,211 @@ body{
 a{color:inherit;text-decoration:none}
 img{display:block;max-width:100%}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
-::selection{background:rgba(59,158,255,.35)}
+::selection{background:rgba(47,111,237,.2)}
 .wrap{max-width:1180px;margin:0 auto;padding:0 18px}
 
 /* ============ HEADER ============ */
-header{position:sticky;top:0;z-index:40;background:rgba(11,14,20,.85);backdrop-filter:blur(14px);border-bottom:1px solid var(--line-soft)}
+header{position:sticky;top:0;z-index:40;background:rgba(238,241,245,.9);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 .head-row{display:flex;align-items:center;gap:16px;padding:14px 0}
 .logo{display:flex;align-items:center;gap:10px;flex-shrink:0}
-.logo-mark{width:38px;height:38px;border-radius:11px;object-fit:cover;flex-shrink:0}
-.logo-txt b{display:block;font-size:15px;font-weight:800;letter-spacing:-.01em}
+.logo-mark{width:38px;height:38px;border-radius:11px;object-fit:cover;flex-shrink:0;box-shadow:var(--shadow)}
+.logo-txt b{display:block;font-family:var(--font-disp);font-size:15px;font-weight:700;letter-spacing:-.01em}
 .logo-txt span{display:block;font-size:11px;color:var(--muted)}
 .search-box{flex:1;position:relative;max-width:460px}
 .search-box input{
   width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;
-  padding:11px 14px 11px 40px;color:var(--txt);font-size:14px;outline:none;transition:border-color .2s var(--ease)
+  padding:11px 14px 11px 40px;color:var(--ink);font-size:14px;outline:none;transition:border-color .2s var(--ease),box-shadow .2s var(--ease)
 }
-.search-box input:focus{border-color:var(--accent)}
-.search-box svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted)}
+.search-box input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.search-box svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted-2)}
 .head-count{margin-left:auto;font-size:13px;color:var(--muted);white-space:nowrap}
-.head-count b{color:var(--txt)}
+.head-count b{color:var(--ink);font-family:var(--font-mono)}
 
-/* ============ FILTROS ============ */
-.filters{padding:16px 0 6px;display:flex;flex-direction:column;gap:12px}
-.chip-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.chip-row .lbl{font-size:12px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.06em;margin-right:2px}
-.chip{
-  padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:var(--card);
-  font-size:13px;color:var(--muted);white-space:nowrap;transition:all .18s var(--ease)
+/* ============ BANNER PROMOCIONAL (carrusel liviano) ============ */
+.promo-wrap{padding:14px 0 0;overflow:hidden}
+.promo-track{display:flex;transition:transform .45s var(--ease)}
+.promo-slide{
+  flex:0 0 100%;border-radius:18px;padding:22px 24px;min-height:104px;
+  display:flex;flex-direction:column;justify-content:center;gap:4px;position:relative;overflow:hidden;
+  color:#fff;
 }
-.chip:hover{border-color:var(--line);color:var(--txt);background:var(--card-2)}
-.chip.on{background:var(--accent-grad);color:#04131f;font-weight:700;border-color:transparent}
-.tools-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.promo-slide::after{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(420px 200px at 85% -20%, rgba(255,255,255,.22), transparent 60%);
+  pointer-events:none;
+}
+.promo-slide.v1{background:linear-gradient(120deg,#173B8C 0%,#2F6FED 55%,#0EA9B8 100%)}
+.promo-slide.v2{background:linear-gradient(120deg,#0B1F3A 0%,#154C7A 60%,#0EA9B8 100%)}
+.promo-eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+.promo-title{font-family:var(--font-disp);font-size:19px;font-weight:700;margin:0;max-width:80%}
+.promo-sub{font-size:12.5px;opacity:.9;max-width:70%}
+.promo-dots{display:flex;gap:6px;justify-content:center;padding:10px 0 2px}
+.promo-dot{width:6px;height:6px;border-radius:999px;background:var(--line);transition:all .2s var(--ease)}
+.promo-dot.on{background:var(--accent);width:18px}
+
+/* ============ NAV DE CATEGORÍAS (única fila visible siempre) ============ */
+.cat-nav{display:flex;gap:8px;overflow-x:auto;padding:12px 0;scrollbar-width:none}
+.cat-nav::-webkit-scrollbar{display:none}
+.cat-chip{
+  padding:8px 15px;border-radius:999px;border:1px solid var(--line);background:var(--card);
+  font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap;transition:all .18s var(--ease);flex-shrink:0
+}
+.cat-chip:hover{border-color:var(--accent);color:var(--ink)}
+.cat-chip.on{background:var(--accent-grad);color:#fff;border-color:transparent}
+
+/* ============ BARRA DE HERRAMIENTAS (filtros escondidos, orden visible) ============ */
+.tools-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:0 0 14px}
 .tools-row select{
-  background:var(--card);border:1px solid var(--line);border-radius:10px;color:var(--txt);
+  background:var(--card);border:1px solid var(--line);border-radius:10px;color:var(--ink);
   padding:9px 12px;font-size:13px;outline:none
 }
+.filter-btn{
+  padding:9px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);
+  color:var(--ink);font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px;position:relative
+}
+.filter-btn:hover{border-color:var(--accent)}
+.filter-btn .n{background:var(--accent-grad);color:#fff;font-size:10.5px;font-weight:700;border-radius:999px;padding:1px 6px;font-family:var(--font-mono)}
 .clear-btn{
-  padding:8px 14px;border-radius:10px;border:1px solid var(--line);background:transparent;
+  padding:9px 14px;border-radius:10px;border:1px solid transparent;background:transparent;
   color:var(--muted);font-size:13px;display:flex;align-items:center;gap:6px
 }
-.clear-btn:hover{color:var(--txt);border-color:var(--accent)}
+.clear-btn:hover{color:var(--ink);text-decoration:underline}
 
-/* ============ MARCAS ============ */
-.brand-strip{display:flex;gap:10px;flex-wrap:wrap;padding:14px 0;border-bottom:1px solid var(--line-soft);margin-bottom:6px}
-.brand-pill{font-size:12px;color:var(--muted-2);padding:5px 11px;border:1px solid var(--line-soft);border-radius:8px}
+/* ============ CHIPS DE FILTROS ACTIVOS ============ */
+.active-filters{display:flex;gap:8px;flex-wrap:wrap;padding:0 0 14px}
+.active-filters:empty{display:none;padding:0}
+.af-chip{
+  display:flex;align-items:center;gap:6px;padding:6px 8px 6px 12px;border-radius:999px;
+  background:var(--accent-soft);color:var(--accent);font-size:12.5px;font-weight:600
+}
+.af-chip button{width:16px;height:16px;border-radius:50%;background:rgba(47,111,237,.15);display:flex;align-items:center;justify-content:center}
+.af-chip button svg{width:9px;height:9px}
+
+/* ============ PANEL DE MARCAS (drawer, cerrado por defecto) ============ */
+.brand-panel{
+  position:fixed;inset:0;z-index:90;display:none;
+}
+.brand-panel.show{display:block}
+.brand-panel .bp-overlay{position:absolute;inset:0;background:rgba(16,21,28,.4)}
+.brand-panel .bp-sheet{
+  position:absolute;right:0;top:0;bottom:0;width:min(340px,86vw);background:var(--card);
+  box-shadow:var(--shadow);padding:20px;overflow-y:auto;
+  transform:translateX(100%);transition:transform .28s var(--ease)
+}
+.brand-panel.show .bp-sheet{transform:translateX(0)}
+.bp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.bp-head h3{margin:0;font-family:var(--font-disp);font-size:17px}
+.bp-close{width:32px;height:32px;border-radius:9px;background:var(--card-2);display:flex;align-items:center;justify-content:center}
+.bp-grid{display:flex;flex-wrap:wrap;gap:8px}
+.bp-chip{
+  padding:7px 12px;border-radius:9px;border:1px solid var(--line);background:var(--card-2);
+  font-size:12.5px;color:var(--muted);transition:all .15s var(--ease)
+}
+.bp-chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
+.bp-apply{width:100%;margin-top:18px;padding:12px;border-radius:11px;background:var(--accent-grad);color:#fff;font-weight:700;font-size:14px}
 
 /* ============ GRID ============ */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;padding:20px 0 60px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;padding:6px 0 60px}
 @media (max-width:560px){.grid{grid-template-columns:1fr 1fr;gap:10px}}
 
 .card{
   background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
-  display:flex;flex-direction:column;animation:rise .5s var(--ease) both;transition:transform .2s var(--ease),border-color .2s var(--ease)
+  display:flex;flex-direction:column;animation:rise .45s var(--ease) both;transition:transform .2s var(--ease),box-shadow .2s var(--ease)
 }
-.card:hover{border-color:#2E3A4E;transform:translateY(-2px)}
-@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.card:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .card.agotado{opacity:.55}
 
-.media{position:relative;aspect-ratio:1/1;background:var(--bg-2);display:flex;align-items:center;justify-content:center;overflow:hidden}
-.media svg{width:56%;height:56%;opacity:.5}
+.media{position:relative;aspect-ratio:1/1;background:
+    repeating-linear-gradient(135deg, var(--card-2) 0 2px, transparent 2px 22px),
+    var(--card-2);
+  display:flex;align-items:center;justify-content:center;overflow:hidden}
+.media svg{width:46%;height:46%;color:var(--muted-2);opacity:.55}
 .badges{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:6px;flex-wrap:wrap;z-index:2}
 .badge{font-size:10.5px;font-weight:700;padding:4px 8px;border-radius:7px;letter-spacing:.01em}
-.badge.cat{background:rgba(59,158,255,.16);color:#8FC7FF}
-.badge.hot{background:rgba(255,166,59,.16);color:#FFC98F}
-.badge.trend{background:rgba(85,192,0,.18);color:#A6E68C}
-.badge.agotado-badge{background:rgba(93,102,117,.35);color:#C7CCD4}
+.badge.cat{background:rgba(255,255,255,.9);color:var(--accent);border:1px solid var(--line)}
+.badge.hot{background:#FFF1E0;color:#B5650A}
+.badge.trend{background:#E6F8EC;color:#158A40}
+.badge.agotado-badge{background:#EDEFF3;color:var(--muted)}
 
-.body{padding:14px 14px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
-.brand-line{font-size:11.5px;color:var(--accent-2);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
-.body h3{margin:0;font-size:15px;font-weight:700;line-height:1.3}
+.body{padding:14px 14px 16px;display:flex;flex-direction:column;gap:7px;flex:1}
+.brand-line{font-family:var(--font-mono);font-size:10.5px;color:var(--accent-2);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.body h3{margin:0;font-family:var(--font-disp);font-size:15.5px;font-weight:600;line-height:1.3;color:var(--ink)}
 .desc{margin:0;font-size:12.5px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 
 .variant-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
 .variant-btn{
   font-size:11px;padding:5px 9px;border-radius:8px;border:1px solid var(--line);color:var(--muted);
-  background:transparent;transition:all .15s var(--ease)
+  background:var(--card-2);transition:all .15s var(--ease)
 }
-.variant-btn.on{border-color:var(--accent);color:var(--accent);background:rgba(59,158,255,.08);font-weight:700}
-.variant-btn.off{opacity:.35;text-decoration:line-through}
+.variant-btn.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);font-weight:700}
+.variant-btn.off{opacity:.4;text-decoration:line-through}
 
 .specs{display:flex;flex-direction:column;gap:4px;margin-top:2px}
 .spec{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
 .spec svg{width:13px;height:13px;flex-shrink:0;color:var(--muted-2)}
 
-.price-row{margin-top:auto;padding-top:8px}
-.price{font-size:19px;font-weight:800;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
-.price small{font-size:11px;color:var(--muted);font-weight:600;margin-left:3px}
-.price-ask{font-size:14px;font-weight:700;color:var(--accent-2)}
+.price-row{margin-top:auto;padding-top:8px;border-top:1px dashed var(--line-soft)}
+.price{font-family:var(--font-disp);font-size:21px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;color:var(--ink)}
+.price small{font-size:11px;color:var(--muted);font-weight:600;margin-left:3px;font-family:var(--font-body)}
+.price-ask{font-family:var(--font-disp);font-size:14.5px;font-weight:700;color:var(--accent)}
 
 .actions{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .btn{border-radius:11px;padding:11px 14px;font-size:13.5px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px;transition:transform .15s var(--ease),filter .15s var(--ease)}
 .btn:active{transform:scale(.97)}
-.btn-wa{background:linear-gradient(120deg,var(--wa),var(--wa-dark));color:#04130A}
-.btn-wa:hover{filter:brightness(1.08)}
-.btn-wa:disabled{background:var(--line);color:var(--muted);cursor:not-allowed}
+.btn-wa{background:linear-gradient(120deg,var(--wa),var(--wa-dark));color:#fff;box-shadow:0 10px 24px -10px rgba(31,175,82,.55)}
+.btn-wa:hover{filter:brightness(1.06)}
+.btn-wa:disabled{background:var(--line);color:var(--muted);cursor:not-allowed;box-shadow:none}
 .btn-row{display:flex;gap:8px}
-.btn-ghost{flex:1;border:1px solid var(--line);color:var(--muted);background:transparent;padding:9px 10px;font-size:12.5px}
-.btn-ghost:hover{border-color:var(--accent);color:var(--txt)}
+.btn-ghost{flex:1;border:1px solid var(--line);color:var(--muted);background:var(--card);padding:9px 10px;font-size:12.5px}
+.btn-ghost:hover{border-color:var(--accent);color:var(--ink)}
 .btn-ghost svg{width:14px;height:14px}
 
 /* ============ ESTADO VACÍO / CARGA ============ */
 .empty,.loading{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;text-align:center;gap:12px}
 .empty .ico,.loading .ico{width:52px;height:52px;color:var(--muted-2)}
-.empty h3,.loading h3{margin:0;font-size:17px}
+.empty h3,.loading h3{margin:0;font-family:var(--font-disp);font-size:17px}
 .empty p,.loading p{margin:0;color:var(--muted);font-size:13.5px;max-width:320px}
-.empty button{padding:10px 18px;border-radius:10px;border:1px solid var(--accent);color:var(--accent);font-size:13px;font-weight:700;margin-top:6px}
+.empty button{padding:10px 18px;border-radius:10px;border:1px solid var(--accent);color:var(--accent);font-size:13px;font-weight:700;margin-top:6px;background:var(--accent-soft)}
 .spin{animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ============ COMPARADOR ============ */
 .cmp-bar{
   position:fixed;left:50%;bottom:18px;transform:translate(-50%,120%);z-index:50;
-  background:var(--card-2);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);
+  background:var(--ink);color:#fff;border-radius:14px;box-shadow:var(--shadow);
   padding:10px 10px 10px 16px;display:flex;align-items:center;gap:12px;transition:transform .3s var(--ease)
 }
 .cmp-bar.show{transform:translate(-50%,0)}
-.cmp-bar .txt{font-size:13px;color:var(--muted)}
-.cmp-bar .txt b{color:var(--txt)}
+.cmp-bar .txt{font-size:13px;color:#C7CCD4}
+.cmp-bar .txt b{color:#fff}
 .cmp-bar button{padding:9px 15px;border-radius:9px;font-size:13px;font-weight:700}
-.cmp-bar .go{background:var(--accent-grad);color:#04131f}
+.cmp-bar .go{background:var(--accent-grad);color:#fff}
 .cmp-bar .go:disabled{opacity:.4}
-.cmp-bar .clr{color:var(--muted);border:1px solid var(--line)}
+.cmp-bar .clr{color:#C7CCD4;border:1px solid #333B47}
 .cmp-toggle{
   position:absolute;top:8px;right:8px;z-index:2;width:28px;height:28px;border-radius:8px;
-  background:rgba(11,14,20,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;
-  color:#fff;transition:all .15s var(--ease)
+  background:rgba(255,255,255,.9);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;
+  color:var(--ink);transition:all .15s var(--ease);border:1px solid var(--line)
 }
-.cmp-toggle.on{background:var(--accent);color:#04131f}
+.cmp-toggle.on{background:var(--accent);color:#fff;border-color:transparent}
 .cmp-toggle svg{width:14px;height:14px}
 
 /* ============ OVERLAY / MODAL ============ */
-.overlay{position:fixed;inset:0;background:rgba(4,6,10,.7);backdrop-filter:blur(3px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.overlay{position:fixed;inset:0;background:rgba(16,21,28,.5);backdrop-filter:blur(3px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
 .overlay.show{display:flex}
-.modal{background:var(--card-2);border:1px solid var(--line);border-radius:20px;max-width:380px;width:100%;padding:26px 24px;text-align:center;box-shadow:var(--shadow);animation:pop .3s var(--ease)}
+.modal{background:var(--card);border:1px solid var(--line);border-radius:20px;max-width:380px;width:100%;padding:26px 24px;text-align:center;box-shadow:var(--shadow);animation:pop .3s var(--ease);color:var(--ink)}
 @keyframes pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
-.modal .ico-wa{width:56px;height:56px;border-radius:50%;background:rgba(37,211,102,.15);display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.modal .ico-wa{width:56px;height:56px;border-radius:50%;background:#E6F8EC;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
 .modal .ico-wa svg{width:28px;height:28px;color:var(--wa)}
-.modal h3{margin:0 0 6px;font-size:17px}
+.modal h3{margin:0 0 6px;font-family:var(--font-disp);font-size:17px}
 .modal p{margin:0 0 18px;color:var(--muted);font-size:13.5px}
 .steps{text-align:left;display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
 .step{display:flex;gap:10px;align-items:flex-start}
-.step .n{width:22px;height:22px;border-radius:50%;background:var(--accent-grad);color:#04131f;font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step .n{width:22px;height:22px;border-radius:50%;background:var(--accent-grad);color:#fff;font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
 .step .t{font-size:13px;color:var(--muted)}
-.step .t b{color:var(--txt)}
-.modal .close-btn{width:100%;padding:12px;border-radius:11px;background:var(--accent-grad);color:#04131f;font-weight:700;font-size:14px}
+.step .t b{color:var(--ink)}
+.modal .close-btn{width:100%;padding:12px;border-radius:11px;background:var(--accent-grad);color:#fff;font-weight:700;font-size:14px}
 
 @media (max-width:560px){
   .logo-txt span{display:none}
@@ -227,25 +299,40 @@ header{position:sticky;top:0;z-index:40;background:rgba(11,14,20,.85);backdrop-f
 </header>
 
 <main class="wrap">
-  <div class="filters">
-    <div class="chip-row" id="chipsCat"><span class="lbl">Categoría</span></div>
-    <div class="chip-row" id="chipsMarca"><span class="lbl">Marca</span></div>
-    <div class="tools-row">
-      <select id="sort">
-        <option value="rel">Relevancia</option>
-        <option value="precio-asc">Precio: menor a mayor</option>
-        <option value="precio-desc">Precio: mayor a menor</option>
-        <option value="marca">Marca A-Z</option>
-        <option value="pedidos">Más pedidos</option>
-      </select>
-      <button class="clear-btn" id="clearBtn">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        Limpiar filtros
-      </button>
+  <div class="promo-wrap">
+    <div class="promo-track" id="promoTrack">
+      <div class="promo-slide v1">
+        <span class="promo-eyebrow">Libre y Digital</span>
+        <p class="promo-title">Cotiza por WhatsApp en un toque</p>
+        <span class="promo-sub">Elige tu equipo, te armamos la ficha y te escribimos directo.</span>
+      </div>
+      <div class="promo-slide v2">
+        <span class="promo-eyebrow">Certificación Apple</span>
+        <p class="promo-title">Sellado, CPO o activado — tú eliges</p>
+        <span class="promo-sub">Cada estado con su precio real, sin sorpresas.</span>
+      </div>
     </div>
+    <div class="promo-dots" id="promoDots"></div>
   </div>
 
-  <div class="brand-strip" id="brandStrip"></div>
+  <div class="cat-nav" id="catNav"></div>
+
+  <div class="tools-row">
+    <button class="filter-btn" id="openFilters">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Marca <span class="n" id="filterCount" style="display:none">0</span>
+    </button>
+    <select id="sort">
+      <option value="rel">Relevancia</option>
+      <option value="precio-asc">Precio: menor a mayor</option>
+      <option value="precio-desc">Precio: mayor a menor</option>
+      <option value="marca">Marca A-Z</option>
+      <option value="pedidos">Más pedidos</option>
+    </select>
+    <button class="clear-btn" id="clearBtn">Limpiar filtros</button>
+  </div>
+
+  <div class="active-filters" id="activeFilters"></div>
 
   <div class="grid" id="grid">
     <div class="loading">
@@ -255,6 +342,20 @@ header{position:sticky;top:0;z-index:40;background:rgba(11,14,20,.85);backdrop-f
     </div>
   </div>
 </main>
+
+<div class="brand-panel" id="brandPanel">
+  <div class="bp-overlay" id="bpOverlay"></div>
+  <div class="bp-sheet">
+    <div class="bp-head">
+      <h3>Filtrar por marca</h3>
+      <button class="bp-close" id="bpClose">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="bp-grid" id="bpGrid"></div>
+    <button class="bp-apply" id="bpApply">Ver resultados</button>
+  </div>
+</div>
 
 <div class="cmp-bar" id="cmpBar">
   <span class="txt"><b id="cmpCount">0</b> para comparar</span>
@@ -275,11 +376,10 @@ const CONTADOR_URL = "https://script.google.com/macros/s/AKfycbzC86qascdbcfVS6gv
 const MOSTRAR_PRECIOS = true; // interruptor: false = solo "Consultar"
 const WHATSAPP_NUM = "573178047523";
 const NEGOCIO = { nombre:"Libre y Digital", nit:"80171352", tel:"+57 317 804 7523", web:"libreydigital.co" };
-const PRIORIDAD_ORDEN = { "1":1, "2":2, "3":3, "4":4 };
 
 const $  = (s,el=document)=>el.querySelector(s);
 const $$ = (s,el=document)=>[...el.querySelectorAll(s)];
-const norm = s => (s||"").toString().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+const norm = s => (s||"").toString().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
 const formatCOP = n => n==null || isNaN(n) ? "" : "$" + Math.round(n).toLocaleString("es-CO");
 
 /* ==============================================================
@@ -308,10 +408,36 @@ function parseCSV(text){
 }
 
 /* ==============================================================
+   BÚSQUEDA TOLERANTE DE COLUMNAS
+   -----------------------------------------------------------
+   BUG CORREGIDO: la hoja publica la columna de precio como
+   "Precio final", pero el código anterior buscaba exactamente
+   "Precio" y nunca la encontraba -> por eso nada mostraba precio.
+   Esta función prueba varios nombres posibles y también hace
+   match parcial, para que un cambio de nombre en la hoja no
+   vuelva a romper la página en silencio.
+   ============================================================== */
+function findCol(headers, candidatos){
+  const normed = headers.map(norm);
+  for(const cand of candidatos){
+    const nc = norm(cand);
+    let i = normed.indexOf(nc);
+    if(i>-1) return i;
+  }
+  for(const cand of candidatos){
+    const nc = norm(cand);
+    let i = normed.findIndex(h => h.includes(nc) || nc.includes(h));
+    if(i>-1) return i;
+  }
+  return -1;
+}
+
+/* ==============================================================
    2) CARGA Y TRANSFORMACIÓN DE DATOS
    ============================================================== */
-let TARJETAS = [];    // una entrada por ID_Tarjeta, con sus variantes agrupadas
-let estado = { q:"", cat:"Todas", marca:"Todas", sort:"rel", cmp:new Set() };
+let TARJETAS = [];
+let MARCAS_CANONICAS = new Map(); // clave normalizada -> nombre a mostrar
+let estado = { q:"", cat:"Todas", marcas:new Set(), sort:"rel", cmp:new Set() };
 
 async function cargarCatalogo(){
   try{
@@ -320,14 +446,38 @@ async function cargarCatalogo(){
     const text = await res.text();
     const rows = parseCSV(text);
     const headers = rows[0].map(h => h.trim());
-    const idx = name => headers.indexOf(name);
 
-    const iMarca=idx("Marca"), iCat=idx("Categoria"), iProd=idx("Producto"),
-          iCap=idx("Capacidad"), iEstado=idx("Estado"), iEtq=idx("Etiqueta"),
-          iPrecio=idx("Precio"), iNotas=idx("Notas"), iId=idx("ID_Tarjeta"),
-          iPrio=idx("Prioridad_Estado"), iDisp=idx("Disponibilidad"), iVeces=idx("Veces_Solicitado");
+    const iMarca   = findCol(headers, ["Marca"]);
+    const iCat     = findCol(headers, ["Categoria","Categoría"]);
+    const iProd    = findCol(headers, ["Producto"]);
+    const iCap     = findCol(headers, ["Capacidad"]);
+    const iEstado  = findCol(headers, ["Estado"]);
+    const iEtq     = findCol(headers, ["Etiqueta"]);
+    const iPrecio  = findCol(headers, ["Precio final","Precio_final","Preciofinal","Precio"]);
+    const iNotas   = findCol(headers, ["Notas"]);
+    const iId      = findCol(headers, ["ID_Tarjeta"]);
+    const iPrio    = findCol(headers, ["Prioridad_Estado"]);
+    const iDisp    = findCol(headers, ["Disponibilidad"]);
+    const iVeces   = findCol(headers, ["Veces_Solicitado"]);
 
     const grupos = new Map();
+
+    // Primera pasada: contar cómo se escribe cada marca para elegir
+    // la grafía más común como "canónica" (arregla POCO vs Poco, etc.)
+    const conteoMarca = new Map();
+    for(let r=1;r<rows.length;r++){
+      const row = rows[r];
+      const bruta = (row[iMarca]||"").trim();
+      if(!bruta) continue;
+      const key = norm(bruta);
+      const entry = conteoMarca.get(key) || {};
+      entry[bruta] = (entry[bruta]||0) + 1;
+      conteoMarca.set(key, entry);
+    }
+    conteoMarca.forEach((variantes, key)=>{
+      const mejor = Object.entries(variantes).sort((a,b)=>b[1]-a[1])[0][0];
+      MARCAS_CANONICAS.set(key, mejor);
+    });
 
     for(let r=1;r<rows.length;r++){
       const row = rows[r];
@@ -335,7 +485,10 @@ async function cargarCatalogo(){
       const disponibilidad = (row[iDisp]||"").trim();
       if(disponibilidad === "Descontinuado") continue; // nunca se muestra
 
-      const idTarjeta = (row[iId]||"").trim() || norm(`${row[iMarca]}-${row[iProd]}-${row[iCap]}`).replace(/[^a-z0-9]+/g,"-");
+      const marcaBruta = (row[iMarca]||"").trim();
+      const marca = MARCAS_CANONICAS.get(norm(marcaBruta)) || marcaBruta;
+
+      const idTarjeta = (iId>-1 && row[iId] && row[iId].trim()) || norm(`${marca}-${row[iProd]}-${row[iCap]}`).replace(/[^a-z0-9]+/g,"-");
       const variante = {
         estado: (row[iEstado]||"").trim(),
         etiqueta: (row[iEtq]||"").trim(),
@@ -347,7 +500,7 @@ async function cargarCatalogo(){
       if(!grupos.has(idTarjeta)){
         grupos.set(idTarjeta, {
           id: idTarjeta,
-          marca: (row[iMarca]||"").trim(),
+          marca,
           categoria: (row[iCat]||"").trim(),
           producto: (row[iProd]||"").trim(),
           capacidad: (row[iCap]||"").trim(),
@@ -361,20 +514,19 @@ async function cargarCatalogo(){
 
     TARJETAS = [...grupos.values()].map(t=>{
       t.variantes.sort((a,b)=> a.prioridad - b.prioridad);
-      // variante mostrada por defecto: la primera Disponible, o la primera si ninguna lo está
       t.variantePorDefecto = t.variantes.find(v=>v.disponibilidad==="Disponible") || t.variantes[0];
       t.todasAgotadas = t.variantes.every(v=>v.disponibilidad!=="Disponible");
       t.esTendencia = false;
       return t;
     });
 
-    // Top 3 más pedidos (solo si hay señal real, para no marcar todo en ceros)
     [...TARJETAS].sort((a,b)=>b.veces-a.veces)
       .filter(t=>t.veces>0)
       .slice(0,3)
       .forEach(t=>{ t.esTendencia = true; });
 
     construirFiltros();
+    renderActiveFilters();
     render();
   }catch(err){
     mostrarErrorCarga(err);
@@ -393,36 +545,144 @@ function mostrarErrorCarga(err){
 }
 
 /* ==============================================================
-   3) FILTROS (categoría / marca dinámicos según los datos)
+   PROMO · Carrusel de banners
+   -----------------------------------------------------------
+   Slots de texto/gradiente listos hoy; cuando haya fotos de
+   producto, cada slide puede llevar background-image en vez de
+   gradiente sin tocar la lógica de autoplay/swipe.
+   ============================================================== */
+function initPromo(){
+  const track = $("#promoTrack");
+  const slides = $$(".promo-slide", track);
+  const dotsBox = $("#promoDots");
+  let i = 0;
+  slides.forEach((_,n)=>{
+    const d = document.createElement("span");
+    d.className = "promo-dot" + (n===0?" on":"");
+    d.onclick = ()=> ir(n);
+    dotsBox.appendChild(d);
+  });
+  function ir(n){
+    i = (n + slides.length) % slides.length;
+    track.style.transform = `translateX(-${i*100}%)`;
+    $$(".promo-dot",dotsBox).forEach((d,k)=>d.classList.toggle("on",k===i));
+  }
+  let auto = setInterval(()=>ir(i+1), 5000);
+  const reset = ()=>{ clearInterval(auto); auto = setInterval(()=>ir(i+1), 5000); };
+
+  let startX = null;
+  track.addEventListener("touchstart", e=>{ startX = e.touches[0].clientX; }, {passive:true});
+  track.addEventListener("touchend", e=>{
+    if(startX==null) return;
+    const dx = e.changedTouches[0].clientX - startX;
+    if(Math.abs(dx) > 40){ ir(i + (dx<0?1:-1)); reset(); }
+    startX = null;
+  });
+}
+initPromo();
+
+/* ==============================================================
+   3) FILTROS
+   -----------------------------------------------------------
+   Categoría: fila única siempre visible (pocas opciones, decisión
+   rápida). Marca: escondida en un panel aparte, porque son 30+
+   valores y mostrarlos todos sueltos abruma (Ley de Hick).
    ============================================================== */
 function construirFiltros(){
   const cats = [...new Set(TARJETAS.map(t=>t.categoria).filter(Boolean))].sort();
   const marcas = [...new Set(TARJETAS.map(t=>t.marca).filter(Boolean))].sort();
 
-  const cCat = $("#chipsCat"), cMar = $("#chipsMarca"), strip = $("#brandStrip");
-  cCat.innerHTML = '<span class="lbl">Categoría</span>';
-  cMar.innerHTML = '<span class="lbl">Marca</span>';
-  strip.innerHTML = "";
-
-  const mkChip = (txt,val,tipo,activo)=>{
+  const catNav = $("#catNav");
+  catNav.innerHTML = "";
+  const mkCat = (txt,val,activo)=>{
     const b = document.createElement("button");
-    b.className = "chip" + (activo ? " on":"");
-    b.textContent = txt; b.dataset.tipo = tipo; b.dataset.val = val;
-    b.onclick = ()=>{ estado[tipo] = val; syncChips(); render(); };
+    b.className = "cat-chip" + (activo ? " on":"");
+    b.textContent = txt;
+    b.onclick = ()=>{ estado.cat = val; syncCatChips(); actualizarConteosMarca(); renderActiveFilters(); render(); };
+    b.dataset.val = val;
     return b;
   };
-  cCat.appendChild(mkChip("Todas","Todas","cat",true));
-  cats.forEach(c=>cCat.appendChild(mkChip(c,c,"cat",false)));
-  cMar.appendChild(mkChip("Todas","Todas","marca",true));
-  marcas.forEach(m=>cMar.appendChild(mkChip(m,m,"marca",false)));
+  catNav.appendChild(mkCat("Todas","Todas",true));
+  cats.forEach(c=>catNav.appendChild(mkCat(c,c,false)));
+
+  const bpGrid = $("#bpGrid");
+  bpGrid.innerHTML = "";
   marcas.forEach(m=>{
-    const p = document.createElement("span"); p.className="brand-pill"; p.textContent = m;
-    strip.appendChild(p);
+    const b = document.createElement("button");
+    b.className = "bp-chip";
+    b.dataset.val = m;
+    b.innerHTML = `${m} <span class="bp-count" style="opacity:.6;font-family:var(--font-mono)"></span>`;
+    b.onclick = ()=>{
+      if(estado.marcas.has(m)) estado.marcas.delete(m); else estado.marcas.add(m);
+      syncBrandChips(); renderActiveFilters(); render();
+    };
+    bpGrid.appendChild(b);
+  });
+  actualizarConteosMarca();
+}
+function syncCatChips(){
+  $$(".cat-chip").forEach(b=>b.classList.toggle("on", estado.cat===b.dataset.val));
+}
+function syncBrandChips(){
+  $$(".bp-chip").forEach(b=>b.classList.toggle("on", estado.marcas.has(b.dataset.val)));
+  const n = estado.marcas.size;
+  $("#filterCount").style.display = n ? "inline-block" : "none";
+  $("#filterCount").textContent = n;
+}
+
+/* --------------------------------------------------------------
+   CONTADOR EN VIVO POR MARCA
+   El conteo de cada marca refleja la categoría y el buscador
+   activos, pero NUNCA las otras marcas ya seleccionadas — así el
+   cliente nunca ve un "(0)" solo por haber marcado otra marca antes,
+   y puede seguir sumando marcas al filtro con confianza.
+   -------------------------------------------------------------- */
+function actualizarConteosMarca(){
+  const base = TARJETAS.filter(t=>{
+    if(estado.cat!=="Todas" && t.categoria!==estado.cat) return false;
+    if(estado.q){
+      const blob = norm([t.marca,t.producto,t.categoria,t.notas].join(" "));
+      if(!blob.includes(norm(estado.q))) return false;
+    }
+    return true;
+  });
+  const conteos = new Map();
+  base.forEach(t=> conteos.set(t.marca, (conteos.get(t.marca)||0) + 1));
+  $$(".bp-chip").forEach(b=>{
+    const n = conteos.get(b.dataset.val) || 0;
+    $(".bp-count",b).textContent = `(${n})`;
+    b.disabled = n===0 && !estado.marcas.has(b.dataset.val);
+    b.style.opacity = b.disabled ? .4 : 1;
   });
 }
-function syncChips(){
-  $$(".chip").forEach(b=>b.classList.toggle("on", estado[b.dataset.tipo]===b.dataset.val));
+
+/* --------------------------------------------------------------
+   CHIPS DE FILTROS ACTIVOS (removibles con un toque)
+   -------------------------------------------------------------- */
+function renderActiveFilters(){
+  const box = $("#activeFilters");
+  const piezas = [];
+  if(estado.cat!=="Todas"){
+    piezas.push({label:estado.cat, quitar: ()=>{ estado.cat="Todas"; syncCatChips(); }});
+  }
+  estado.marcas.forEach(m=>{
+    piezas.push({label:m, quitar: ()=>{ estado.marcas.delete(m); syncBrandChips(); }});
+  });
+  box.innerHTML = piezas.map((p,i)=>`
+    <span class="af-chip" data-i="${i}">${p.label}
+      <button aria-label="Quitar filtro">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </button>
+    </span>`).join("");
+  $$(".af-chip",box).forEach((el,i)=>{
+    $("button",el).onclick = ()=>{ piezas[i].quitar(); renderActiveFilters(); actualizarConteosMarca(); render(); };
+  });
 }
+
+$("#openFilters").onclick = ()=> $("#brandPanel").classList.add("show");
+$("#bpClose").onclick = ()=> $("#brandPanel").classList.remove("show");
+$("#bpOverlay").onclick = ()=> $("#brandPanel").classList.remove("show");
+$("#bpApply").onclick = ()=>{ $("#brandPanel").classList.remove("show"); renderActiveFilters(); render(); };
 
 /* ==============================================================
    4) FILTRADO + ORDEN + RENDER
@@ -430,7 +690,7 @@ function syncChips(){
 function filtrar(){
   let arr = TARJETAS.filter(t=>{
     if(estado.cat!=="Todas" && t.categoria!==estado.cat) return false;
-    if(estado.marca!=="Todas" && t.marca!==estado.marca) return false;
+    if(estado.marcas.size && !estado.marcas.has(t.marca)) return false;
     if(estado.q){
       const blob = norm([t.marca,t.producto,t.categoria,t.notas].join(" "));
       if(!blob.includes(norm(estado.q))) return false;
@@ -447,15 +707,30 @@ function filtrar(){
 
 const ico = {
   chip:`<svg viewBox="0 0 24 24" fill="none"><rect x="6" y="6" width="12" height="12" rx="2" stroke="currentColor" stroke-width="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
-  box:`<svg viewBox="0 0 24 24" fill="none"><path d="M21 8v8a2 2 0 0 1-1 1.7l-7 4a2 2 0 0 1-2 0l-7-4A2 2 0 0 1 3 16V8a2 2 0 0 1 1-1.7l7-4a2 2 0 0 1 2 0l7 4A2 2 0 0 1 21 8Z" stroke="currentColor" stroke-width="1.6"/></svg>`
 };
 
+/* --------------------------------------------------------------
+   PLACEHOLDER DE IMAGEN
+   BUG CORREGIDO: antes mostraba la primera letra del nombre del
+   producto, y como muchos modelos empiezan con números ("11",
+   "12", "13 Pro"...), la tarjeta terminaba mostrando solo "1".
+   Ahora usa un ícono según la categoría, más el nombre completo
+   debajo en texto real (no dentro del SVG).
+   -------------------------------------------------------------- */
+const ICONOS_CATEGORIA = {
+  "celulares": `<path d="M8 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.6"/><path d="M11 18h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>`,
+  "tablets": `<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M11 17h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>`,
+  "portatiles": `<rect x="3" y="5" width="18" height="12" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M2 20h20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>`,
+  "computadores": `<rect x="4" y="4" width="16" height="12" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M9 20h6M12 16v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>`,
+  "smartwatch": `<rect x="7" y="7" width="10" height="10" rx="2.5" stroke="currentColor" stroke-width="1.6"/><path d="M9 3h6M9 21h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>`,
+  "audio": `<path d="M4 14v-3a8 8 0 0 1 16 0v3" stroke="currentColor" stroke-width="1.6"/><rect x="2" y="14" width="5" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="17" y="14" width="5" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/>`,
+};
+const ICONO_DEFECTO = `<path d="M21 8v8a2 2 0 0 1-1 1.7l-7 4a2 2 0 0 1-2 0l-7-4A2 2 0 0 1 3 16V8a2 2 0 0 1 1-1.7l7-4a2 2 0 0 1 2 0l7 4A2 2 0 0 1 21 8Z" stroke="currentColor" stroke-width="1.6"/>`;
+
 function imgPlaceholder(t){
-  const inicial = (t.producto||t.marca||"?").trim().charAt(0).toUpperCase();
-  return `<svg viewBox="0 0 100 100" fill="none">
-    <rect x="8" y="8" width="84" height="84" rx="16" stroke="currentColor" stroke-width="2" opacity=".4"/>
-    <text x="50" y="60" font-size="34" font-weight="800" text-anchor="middle" fill="currentColor">${inicial}</text>
-  </svg>`;
+  const key = norm(t.categoria).replace(/[^a-z]/g,"");
+  const path = ICONOS_CATEGORIA[key] || ICONO_DEFECTO;
+  return `<svg viewBox="0 0 24 24" fill="none">${path}</svg>`;
 }
 
 function tarjetaHTML(t){
@@ -537,7 +812,7 @@ function render(){
     const wrap = document.createElement("div");
     wrap.innerHTML = tarjetaHTML(t);
     const card = wrap.firstElementChild;
-    card.style.animationDelay = (i*35)+"ms";
+    card.style.animationDelay = (Math.min(i,12)*35)+"ms";
     grid.appendChild(card);
 
     $$('.variant-btn',card).forEach(btn=>{
@@ -557,12 +832,12 @@ function render(){
 }
 
 function limpiar(){
-  estado.cat="Todas"; estado.marca="Todas"; estado.sort="rel"; estado.q="";
+  estado.cat="Todas"; estado.marcas.clear(); estado.sort="rel"; estado.q="";
   $("#q").value=""; $("#sort").value="rel";
-  syncChips(); render();
+  syncCatChips(); syncBrandChips(); actualizarConteosMarca(); renderActiveFilters(); render();
 }
 $("#clearBtn").onclick = limpiar;
-$("#q").addEventListener("input", ()=>{ estado.q = $("#q").value.trim(); render(); });
+$("#q").addEventListener("input", ()=>{ estado.q = $("#q").value.trim(); actualizarConteosMarca(); render(); });
 $("#sort").addEventListener("change", ()=>{ estado.sort = $("#sort").value; render(); });
 
 /* ==============================================================
@@ -592,10 +867,10 @@ function abrirComparador(items){
   }
   const html = `
     <div style="max-width:640px">
-      <h3 style="margin:0 0 16px">Comparar equipos</h3>
+      <h3 style="margin:0 0 16px;font-family:var(--font-disp)">Comparar equipos</h3>
       <div style="overflow-x:auto">
       <table style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:left">
-        <tr>${items.map(t=>`<th style="padding:8px;border-bottom:1px solid var(--line);color:var(--txt)">${t.marca}<br>${t.producto}</th>`).join("")}</tr>
+        <tr>${items.map(t=>`<th style="padding:8px;border-bottom:1px solid var(--line);color:var(--ink)">${t.marca}<br>${t.producto}</th>`).join("")}</tr>
         <tr>${items.map(t=>`<td style="padding:8px;border-bottom:1px solid var(--line);font-weight:800">${formatCOP(t.variantePorDefecto?.precio)||'Consultar'}</td>`).join("")}</tr>
         ${filas.map(f=>`<tr>${f.map(c=>`<td style="padding:8px;border-bottom:1px solid var(--line-soft);color:var(--muted)">${c}</td>`).join("")}</tr>`).join("")}
       </table>
@@ -624,23 +899,23 @@ function cotizacionHTML(t,v){
     : `<p class="q-note">Precio a confirmar por WhatsApp.</p>`;
   return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
 <style>
-  body{margin:0;background:#0B0E14;color:#F2F5FA;font-family:Arial,sans-serif}
-  .q{max-width:420px;margin:0 auto}
-  .q-top{display:flex;align-items:center;gap:10px;padding:20px 24px;border-bottom:1px solid #1B212C}
-  .q-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(120deg,#3B9EFF,#35E0E5);display:flex;align-items:center;justify-content:center;font-weight:900;color:#04131f}
+  body{margin:0;background:#EEF1F5;color:#10151C;font-family:Arial,sans-serif}
+  .q{max-width:420px;margin:0 auto;background:#fff}
+  .q-top{display:flex;align-items:center;gap:10px;padding:20px 24px;border-bottom:1px solid #E4E9F0}
+  .q-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(120deg,#2F6FED,#0EA9B8);display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff}
   .q-brand b{display:block;font-size:14px}
-  .q-brand span{display:block;font-size:11px;color:#8A93A3}
-  .q-tag{margin-left:auto;font-size:11px;background:rgba(59,158,255,.15);color:#8FC7FF;padding:4px 10px;border-radius:8px;font-weight:700}
+  .q-brand span{display:block;font-size:11px;color:#5B6472}
+  .q-tag{margin-left:auto;font-size:11px;background:#EAF1FE;color:#2F6FED;padding:4px 10px;border-radius:8px;font-weight:700}
   .q-body{padding:20px 24px}
-  .q-cat{font-size:12px;color:#35E0E5;font-weight:700;text-transform:uppercase;margin-bottom:6px}
+  .q-cat{font-size:12px;color:#0EA9B8;font-weight:700;text-transform:uppercase;margin-bottom:6px}
   .q-title{margin:0 0 8px;font-size:20px}
   .q-specs{margin:14px 0;padding:0;list-style:none}
-  .q-specs li{font-size:13px;color:#C7CCD4;padding:7px 0;border-bottom:1px solid #1B212C}
+  .q-specs li{font-size:13px;color:#3A414D;padding:7px 0;border-bottom:1px solid #E4E9F0}
   .q-price{font-size:24px;font-weight:800;margin-top:4px}
-  .q-price span{font-size:12px;color:#8A93A3;font-weight:600}
-  .q-note{font-size:11.5px;color:#8A93A3;margin-top:4px}
-  .q-foot{padding:18px 24px;border-top:1px solid #1B212C;font-size:12px;color:#8A93A3;line-height:1.7;text-align:center}
-  .q-foot b{color:#F2F5FA}
+  .q-price span{font-size:12px;color:#5B6472;font-weight:600}
+  .q-note{font-size:11.5px;color:#5B6472;margin-top:4px}
+  .q-foot{padding:18px 24px;border-top:1px solid #E4E9F0;font-size:12px;color:#5B6472;line-height:1.7;text-align:center}
+  .q-foot b{color:#10151C}
 </style></head><body>
   <div class="q">
     <div class="q-top">
@@ -687,9 +962,6 @@ async function meInteresa(t){
 }
 
 function contarClic(t){
-  // Contador real: suma 1 en Veces_Solicitado directamente en el Google Sheet.
-  // Silencioso (fire-and-forget): si falla por internet lento, no interrumpe
-  // el flujo de WhatsApp del cliente.
   try{
     fetch(`${CONTADOR_URL}?id=${encodeURIComponent(t.id)}`, { mode: "no-cors", cache: "no-store" }).catch(()=>{});
   }catch(e){}
