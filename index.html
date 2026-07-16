@@ -446,18 +446,16 @@ function findCol(headers, candidatos){
    -------------------------------------------------------------- */
 function parsePrecio(raw){
   if(raw==null) return null;
-  let s = raw.toString().trim().replace(/[^\d.,-]/g,"");
+  let s = raw.toString().trim().replace(/[^\d.,'-]/g,"");
   if(!s) return null;
-  // $2.590.000,00 (es-CO completo: miles con punto + decimales con coma)
-  if(/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)){
+  s = s.replace(/'/g,".");                    // 1'000.000 -> 1.000.000 (apóstrofe = punto de miles)
+  if(/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)){    // $2.590.000 o $2.590.000,00
     return parseInt(s.split(",")[0].replace(/\./g,""),10) || null;
   }
-  // $2,590,000.00 (en-US: miles con coma + decimales con punto)
-  if(/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)){
+  if(/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)){    // $2,590,000 o $2,590,000.00
     return Math.round(parseFloat(s.replace(/,/g,""))) || null;
   }
-  // 2590000 o 2590000.0 (número plano)
-  const n = parseFloat(s.replace(",","."));
+  const n = parseFloat(s.replace(",","."));    // número simple: 2590000 o 2590000.0
   return isNaN(n) ? null : Math.round(n);
 }
 
@@ -974,34 +972,33 @@ function cotizacionHTML(t,v){
   const estadoTag = v.estado && v.estado!=="Nuevo" ? `<span class="q-estado">${v.estado}</span>` : "";
   return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
 <style>
-  *{box-sizing:border-box}
   html,body{height:100%}
-  body{margin:0;background:#E4E9F0;color:#10151C;font-family:-apple-system,Segoe UI,Arial,sans-serif;
-    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px 16px}
-  .q{width:100%;max-width:480px;background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 28px 70px -26px rgba(16,21,28,.28)}
-  .q-bar{height:8px;background:linear-gradient(120deg,#2F6FED,#0EA9B8)}
-  .q-top{display:flex;align-items:center;gap:12px;padding:26px 28px 20px}
-  .q-mark{width:48px;height:48px;border-radius:13px;object-fit:cover;flex-shrink:0;box-shadow:0 8px 18px -8px rgba(16,21,28,.35)}
-  .q-brand b{display:block;font-size:17px;font-weight:700}
-  .q-brand span{display:block;font-size:12.5px;color:#5B6472}
-  .q-tag{margin-left:auto;font-size:11.5px;background:#EAF1FE;color:#2F6FED;padding:6px 12px;border-radius:999px;font-weight:700;letter-spacing:.02em;text-transform:uppercase}
-  .q-body{padding:8px 28px 26px}
-  .q-cat-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-  .q-cat{font-size:13px;color:#0EA9B8;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
-  .q-estado{font-size:11.5px;background:#FFF1E0;color:#B5650A;padding:4px 11px;border-radius:999px;font-weight:700}
-  .q-title{margin:0 0 20px;font-size:28px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
-  .q-price-box{background:#F7F9FC;border:1px solid #E4E9F0;border-radius:16px;padding:20px 22px;margin-bottom:20px}
-  .q-price{font-size:34px;font-weight:800;letter-spacing:-.01em}
-  .q-price span{font-size:13px;color:#5B6472;font-weight:600;margin-left:5px}
-  .q-price-ask{font-size:22px;font-weight:700;color:#2F6FED}
-  .q-note{font-size:12.5px;color:#5B6472;margin:7px 0 0}
+  body{margin:0;background:#fff;color:#10151C;font-family:-apple-system,Segoe UI,Arial,sans-serif;
+    min-height:100vh;display:flex;flex-direction:column}
+  .q{width:100%;flex:1;display:flex;flex-direction:column;background:#fff}
+  .q-bar{height:10px;background:linear-gradient(120deg,#2F6FED,#0EA9B8);flex-shrink:0}
+  .q-top{display:flex;align-items:center;gap:14px;padding:32px 26px 24px}
+  .q-mark{width:56px;height:56px;border-radius:15px;object-fit:cover;flex-shrink:0;box-shadow:0 10px 22px -8px rgba(16,21,28,.35)}
+  .q-brand b{display:block;font-size:19px;font-weight:700}
+  .q-brand span{display:block;font-size:13.5px;color:#5B6472}
+  .q-tag{margin-left:auto;font-size:12.5px;background:#EAF1FE;color:#2F6FED;padding:7px 14px;border-radius:999px;font-weight:700;letter-spacing:.02em;text-transform:uppercase}
+  .q-body{padding:8px 26px 32px;flex:1;display:flex;flex-direction:column}
+  .q-cat-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .q-cat{font-size:14.5px;color:#0EA9B8;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .q-estado{font-size:12.5px;background:#FFF1E0;color:#B5650A;padding:5px 12px;border-radius:999px;font-weight:700}
+  .q-title{margin:0 0 26px;font-size:38px;font-weight:700;letter-spacing:-.01em;line-height:1.15}
+  .q-price-box{background:#F7F9FC;border:1px solid #E4E9F0;border-radius:18px;padding:26px 26px;margin-bottom:26px}
+  .q-price{font-size:46px;font-weight:800;letter-spacing:-.01em}
+  .q-price span{font-size:15px;color:#5B6472;font-weight:600;margin-left:6px}
+  .q-price-ask{font-size:28px;font-weight:700;color:#2F6FED}
+  .q-note{font-size:13.5px;color:#5B6472;margin:9px 0 0}
   .q-specs{margin:0;padding:0;list-style:none}
-  .q-specs li{display:flex;align-items:flex-start;gap:10px;font-size:15px;color:#2B313B;padding:12px 0;border-bottom:1px solid #EEF1F5}
+  .q-specs li{display:flex;align-items:flex-start;gap:12px;font-size:17px;color:#2B313B;padding:16px 0;border-bottom:1px solid #EEF1F5}
   .q-specs li:last-child{border-bottom:none}
-  .q-specs .dot{width:7px;height:7px;border-radius:50%;background:#2F6FED;margin-top:7px;flex-shrink:0}
-  .q-foot{padding:22px 28px;background:#10151C;color:#C7CCD4;font-size:13px;line-height:1.9;text-align:center}
-  .q-foot b{color:#fff;font-size:14.5px}
-  .q-foot .wa{color:#3CD97A;font-weight:700;font-size:14px}
+  .q-specs .dot{width:8px;height:8px;border-radius:50%;background:#2F6FED;margin-top:8px;flex-shrink:0}
+  .q-foot{padding:28px 26px;background:#10151C;color:#C7CCD4;font-size:14px;line-height:2;text-align:center;flex-shrink:0}
+  .q-foot b{color:#fff;font-size:16px}
+  .q-foot .wa{color:#3CD97A;font-weight:700;font-size:15.5px}
 </style></head><body>
   <div class="q">
     <div class="q-bar"></div>
