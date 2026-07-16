@@ -214,6 +214,8 @@ header{position:sticky;top:0;z-index:40;background:rgba(238,241,245,.9);backdrop
 
 .variant-price-list{display:flex;flex-direction:column;gap:5px;margin-top:4px;padding-top:6px;border-top:1px dashed var(--line-soft)}
 .vp-caption{font-size:10.5px;color:var(--muted-2);font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-bottom:1px}
+.vp-help{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:var(--line);color:var(--muted);font-size:10px;font-weight:800;text-transform:none;letter-spacing:0;vertical-align:middle;margin-left:2px}
+.vp-help:hover{background:var(--accent);color:#fff}
 .vp-row{
   display:flex;align-items:center;justify-content:space-between;width:100%;
   padding:7px 10px;border-radius:9px;border:1px solid var(--line);background:var(--card-2);
@@ -840,7 +842,7 @@ function tarjetaHTML(t){
   const multiVariante = variantesUnicas.length>1;
   const variantRow = multiVariante ? `
     <div class="variant-price-list">
-      <span class="vp-caption">Toca el estado que quieres cotizar:</span>
+      <span class="vp-caption">Toca el estado que quieres cotizar: <button class="vp-help" onclick="event.stopPropagation();explicarEstados()" title="¿Qué significa cada estado?">ⓘ</button></span>
       ${variantesUnicas.map(est=>{
         const vv = t.variantes.find(x=>x.estado===est);
         const activa = v.estado===est;
@@ -878,6 +880,10 @@ function tarjetaHTML(t){
             ${t.todasAgotadas ? "Agotado" : "Me interesa"}
           </button>
           <div class="btn-row">
+            <button class="btn btn-ghost" data-act="ver">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg>
+              Ver ficha
+            </button>
             <button class="btn btn-ghost" data-act="share">
               <svg viewBox="0 0 24 24" fill="none"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               Compartir
@@ -926,6 +932,7 @@ function render(){
     const waBtn = $('[data-act="wa"]',card);
     if(waBtn && !waBtn.disabled) waBtn.onclick = ()=>meInteresa(t);
     $('[data-act="share"]',card).onclick = ()=>compartirProducto(t);
+    $('[data-act="ver"]',card).onclick = ()=>verCotizacion(t);
   });
 }
 
@@ -986,7 +993,7 @@ function mensajeWA(t,v){
   const nombre = `${t.marca} ${t.producto}` + (v.estado && v.estado!=="Nuevo" ? ` (${v.estado})` : "");
   return `¡Hola Libre y Digital! 😍 Me encantó este 👉 *${nombre}*.\n`
        + `Ya me decidí por él. ¿Me confirman disponibilidad y cómo lo puedo tener?\n`
-       + `Les paso la ficha que armé 👇`;
+       + `Ya armé la ficha con los detalles — te la adjunto aquí mismo 📎`;
 }
 
 function cotizacionHTML(t,v){
@@ -1061,24 +1068,33 @@ function cotizacionHTML(t,v){
 </body></html>`;
 }
 
+function verCotizacion(t){
+  const v = t._varSel || t.variantePorDefecto;
+  const html = cotizacionHTML(t,v);
+  const url = URL.createObjectURL(new Blob([html],{type:"text/html"}));
+  window.open(url, "_blank");
+}
+
 async function meInteresa(t){
   const v = t._varSel || t.variantePorDefecto;
   contarClic(t);
   const mensaje = mensajeWA(t,v);
+  const linkWA = `https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(mensaje)}`;
 
-  // PRIORIDAD #1: abrir WhatsApp directo al número del negocio, con el
-  // mensaje ya escrito, listo para tocar enviar — sin selector de
-  // contacto ni pasos intermedios. Esto pasa siempre, de inmediato.
-  window.open(`https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(mensaje)}`, "_blank");
+  // Abre WhatsApp directo al número del negocio, mensaje ya escrito.
+  window.open(linkWA, "_blank");
 
-  // La cotización se descarga en paralelo (no bloquea ni retrasa lo de
-  // arriba). Si el cliente quiere adjuntarla, ya la tiene en Descargas.
+  // Descarga la ficha en paralelo y muestra el instructivo para adjuntarla
+  // (mismo patrón probado en el cotizador PPA: no existe forma de adjuntar
+  // el archivo solo, así que se guía al cliente con un paso claro).
   try{
     const html = cotizacionHTML(t,v);
     const nombreArch = `Cotizacion-${t.marca}-${t.producto}`.replace(/[^\w\-]+/g,"-") + ".html";
     const url = URL.createObjectURL(new Blob([html],{type:"text/html"}));
     const a = document.createElement("a"); a.href=url; a.download=nombreArch; document.body.appendChild(a); a.click(); a.remove();
   }catch(e){}
+
+  mostrarInstructivo(linkWA);
 }
 
 function contarClic(t){
@@ -1101,6 +1117,24 @@ function compartirProducto(t){
 }
 
 /* ==============================================================
+   6.5) EXPLICACIÓN DE ESTADOS (Sellado / Activado / CPO)
+   ============================================================== */
+function explicarEstados(){
+  abrirModal(`
+    <div style="text-align:left">
+      <h3 style="margin:0 0 16px;text-align:center">¿Qué significa cada estado?</h3>
+      <div class="steps">
+        <div class="step"><div class="n">🆕</div><div class="t"><b>Nuevo sellado</b> — De fábrica, en su caja original, sin abrir. Garantía completa desde cero.</div></div>
+        <div class="step"><div class="n">📦</div><div class="t"><b>CPO caja blanca</b> — Certificado, sellado, en caja blanca genérica en lugar de la caja original de la marca. Garantía vigente.</div></div>
+        <div class="step"><div class="n">🔓</div><div class="t"><b>Nuevo activado</b> — Sellado de fábrica, pero con la garantía ya corriendo desde que el distribuidor autorizado lo registra en el canal de venta (aunque nunca se haya encendido). Por eso es más accesible.</div></div>
+      </div>
+      <button class="close-btn" id="closeEstados">Entendido</button>
+    </div>
+  `);
+  $("#closeEstados").onclick = cerrarModal;
+}
+
+/* ==============================================================
    7) MODAL / INSTRUCTIVO
    ============================================================== */
 function abrirModal(html){
@@ -1110,7 +1144,7 @@ function abrirModal(html){
 function cerrarModal(){ $("#overlay").classList.remove("show"); }
 $("#overlay").addEventListener("click", e=>{ if(e.target.id==="overlay") cerrarModal(); });
 
-function mostrarInstructivo(){
+function mostrarInstructivo(linkWA){
   abrirModal(`
     <div class="ico-wa"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.5A10 10 0 1 0 12 2Z" stroke="currentColor" stroke-width="2"/></svg></div>
     <h3>Ya casi está listo</h3>
@@ -1120,7 +1154,8 @@ function mostrarInstructivo(){
       <div class="step"><div class="n">2</div><div class="t">En el chat de WhatsApp que se abrió, toca el clip <b>📎</b> y adjúntalo.</div></div>
       <div class="step"><div class="n">3</div><div class="t">Envía el mensaje que ya está escrito. ¡Eso es todo!</div></div>
     </div>
-    <button class="close-btn" id="closeModal">Entendido</button>
+    <a class="close-btn" id="reabrirWA" href="${linkWA}" target="_blank" style="display:block;text-decoration:none;margin-bottom:10px">📲 Reabrir WhatsApp</a>
+    <button class="close-btn" id="closeModal" style="background:transparent;border:1px solid var(--line);color:var(--muted)">Entendido</button>
   `);
   $("#closeModal").onclick = cerrarModal;
 }
